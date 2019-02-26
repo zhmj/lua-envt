@@ -63,7 +63,6 @@ function get_keys(pattern)
 end
 
 local params = {}
---params.match = "dpzj:club:details:*"
 params.match = "word_infos:*"
 params.count = 1000
 local keys_table = scan_keys(0, params)
