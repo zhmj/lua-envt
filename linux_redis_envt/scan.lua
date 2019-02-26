@@ -72,3 +72,51 @@ local g_keys = get_keys(params.match)
 --mj.show_table(g_keys)
 
 print(#keys_table, #g_keys)
+
+
+function sscan_keys(key, start_id, params)
+	local data = {}
+
+	local params = params or {}
+
+	local keys = redis:sscan(key, start_id, params)
+	local offset_id = tonumber(keys[1])
+	local ks = keys[2]
+	for i = 1, #ks do
+		local k = ks[i]
+		data[k] = true
+		--print(offset_id, #ks, k)
+	end
+
+	if offset_id == 0 then
+		if start_id == 0 then
+			return ks, data
+		else
+			return keys_table, data
+		end
+	else
+		local kt, d = sscan_keys(key, offset_id, params)
+		for k, v in pairs(d) do
+			if not data[k] then
+				data[k] = true
+			end
+		end
+	end
+
+	local keys_table = {}
+	for k, v in pairs(data) do
+		table.insert(keys_table, k)
+	end
+
+	return keys_table, data
+end
+local sparams = {}
+--sparams.match = "*"
+sparams.count = 1000
+
+--local ids_key = "sex1"
+local ids_key = "words_list"
+local ids_table = sscan_keys(ids_key, 0, sparams)
+
+local ids = redis:smembers(ids_key)
+print(#ids_table, #ids)
